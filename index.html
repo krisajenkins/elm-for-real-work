@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Elm for Real Work</title>
+<meta name="author" content="(Kris Jenkins)"/>
+<link rel="stylesheet" href="file:///Users/kris/Work/ThirdParty/reveal.js/css/reveal.css"/>
+<link rel="stylesheet" href="file:///Users/kris/Work/ThirdParty/reveal.js/css/theme/default.css" id="theme"/>
+<link rel="stylesheet" href=""/>
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'file:///Users/kris/Work/ThirdParty/reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1>Elm for Real Work</h1>
+<h2>Kris Jenkins</h2>
+<h2><a href="mailto:Twitter: @krisajenkins">Twitter: @krisajenkins</a></h2>
+<h2></h2>
+</section>
+<section>
+<section id="slide-orgheadline5">
+<h2 id="orgheadline5">Why?</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+</div></section>
+<section id="slide-orgheadline1">
+<h3 id="orgheadline1">Complexity</h3>
+</section>
+<section id="slide-orgheadline2">
+<h3 id="orgheadline2">Frontend Work is Really Complex</h3>
+<ul>
+<li>Mirror the backend</li>
+<li><i>plus</i> Error-handling</li>
+<li><i>plus</i> Users</li>
+<li><i>plus</i> Marketing</li>
+<li><i>plus</i> Everyone else</li>
+<li><i>plus</i> Constantly In Flux</li>
+
+</ul>
+</section>
+<section id="slide-orgheadline3">
+<h3 id="orgheadline3">Pressing Need</h3>
+<p>
+Make-or-break the company
+</p>
+</section>
+<section id="slide-orgheadline4">
+<h3 id="orgheadline4">We Have The Worst Tools</h3>
+<ul>
+<li>Expectations are evolving faster than JavaScript</li>
+<li>Most of our solutions are workarounds</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline9">
+<h2 id="orgheadline9">Elm</h2>
+<div class="outline-text-2" id="text-orgheadline9">
+</div></section>
+<section id="slide-orgheadline7">
+<h3 id="orgheadline7">Elm is&#x2026;</h3>
+<ul>
+<li>A variant of Haskell</li>
+<li>Written in Haskell</li>
+<li>Compiles to JavaScript</li>
+<li>Easy to learn</li>
+<li>Structurally simple</li>
+
+</ul>
+</section>
+<section id="slide-orgheadline6">
+<h4 id="orgheadline6">Elm has&#x2026;</h4>
+<ul>
+<li>Friendly Static Typing</li>
+<li>Pure rendering</li>
+<li>One-way data-flow</li>
+<li>Immutable Data</li>
+<li>Pure Functions</li>
+<li>Control over <i>side-effects</i></li>
+
+</ul>
+</section>
+<section id="slide-orgheadline8">
+<h3 id="orgheadline8">Let's look at</h3>
+<ul>
+<li>Whole app structure</li>
+<li>Examples
+<ul>
+<li>Forms</li>
+<li>Parsing</li>
+<li>Analytics</li>
+
+</ul></li>
+<li>Demos</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline10">
+<h2 id="orgheadline10">Elm Architecture</h2>
+<p>
+Four Easy Pieces
+</p>
+<ul>
+<li>State of the World</li>
+<li>Show It</li>
+<li>Stuff Happens</li>
+<li>When Stuff Happens, What Does it Mean?</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline23">
+<h2 id="orgheadline23">Login Form</h2>
+<div class="outline-text-2" id="text-orgheadline23">
+</div></section>
+<section id="slide-orgheadline11">
+<h3 id="orgheadline11">Model</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #66D9EF;">type</span> <span style="color: #66D9EF;">Model</span> =
+  <span style="color: #66d9ef;">{</span>username : <span style="color: #66D9EF;">String</span>
+  <span style="color: #66D9EF;">,</span>password : <span style="color: #66D9EF;">String</span>
+  <span style="color: #66D9EF;">,</span>lastError : <span style="color: #66D9EF;">Maybe</span> <span style="color: #66D9EF;">Error</span>
+  <span style="color: #66D9EF;">,</span>credentials : <span style="color: #66D9EF;">Maybe</span> <span style="color: #66D9EF;">AuthToken</span><span style="color: #66d9ef;">}</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline12">
+<h3 id="orgheadline12">Actions</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #66D9EF;">type</span> <span style="color: #66D9EF;">Action</span>
+  = <span style="color: #66D9EF;">Submit</span>
+  | <span style="color: #66D9EF;">ChangeUsername</span> <span style="color: #66D9EF;">String</span>
+  | <span style="color: #66D9EF;">ChangePassword</span> <span style="color: #66D9EF;">String</span>
+  | <span style="color: #66D9EF;">LoginResponse</span> <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">Result</span> <span style="color: #66D9EF;">Error</span> <span style="color: #66D9EF;">AuthToken</span><span style="color: #66d9ef;">)</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline13">
+<h3 id="orgheadline13">Action-Handling</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">update</span> : <span style="color: #66D9EF;">Action</span> -&gt; <span style="color: #66D9EF;">Model</span> -&gt; <span style="color: #66D9EF;">Model</span>
+<span style="color: #F92672; font-style: italic;">update</span> action model =
+  <span style="color: #66D9EF;">case</span> action <span style="color: #66D9EF;">of</span>
+    <span style="color: #66D9EF;">ChangeUsername</span> s -&gt; <span style="color: #66d9ef;">{</span>model | username &lt;- s<span style="color: #66d9ef;">}</span>
+    <span style="color: #66D9EF;">ChangePassword</span> s -&gt; <span style="color: #66d9ef;">{</span>model | password &lt;- s<span style="color: #66d9ef;">}</span>
+    ...
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline14">
+<h3 id="orgheadline14">Effects</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">submitForm</span> : <span style="color: #66D9EF;">Model</span> -&gt; <span style="color: #66D9EF;">Effects</span> <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">Result</span> <span style="color: #66D9EF;">Error</span> <span style="color: #66D9EF;">AuthToken</span><span style="color: #66d9ef;">)</span>
+<span style="color: #F92672; font-style: italic;">submitForm</span> model =
+  encodeForm model
+  |&gt; post decodeAuthToken <span style="color: #E6DB74;">"/auth/login"</span>
+  |&gt; asEffect
+
+<span style="color: #F92672; font-style: italic;">decodeAuthToken</span> : <span style="color: #66D9EF;">String</span> -&gt; <span style="color: #66D9EF;">AuthToken</span>
+<span style="color: #F92672; font-style: italic;">decodeAuthToken</span> = ...
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline18">
+<h3 id="orgheadline18">More Action Handling</h3>
+<div class="outline-text-3" id="text-orgheadline18">
+</div></section>
+<section id="slide-orgheadline15">
+<h4 id="orgheadline15">I Lied</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">update</span> : <span style="color: #66D9EF;">Action</span> -&gt; <span style="color: #66D9EF;">Model</span> -&gt; <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">Model</span>, <span style="color: #66D9EF;">Effects</span> <span style="color: #66D9EF;">Action</span><span style="color: #66d9ef;">)</span>
+<span style="color: #F92672; font-style: italic;">update</span> action model =
+  <span style="color: #66D9EF;">case</span> action <span style="color: #66D9EF;">of</span>
+    <span style="color: #66D9EF;">ChangeUsername</span> s -&gt; <span style="color: #66d9ef;">(</span><span style="color: #a6e22e;">{</span>model | username &lt;- s<span style="color: #a6e22e;">}</span>, none<span style="color: #66d9ef;">)</span>
+    <span style="color: #66D9EF;">ChangePassword</span> s -&gt; <span style="color: #66d9ef;">(</span><span style="color: #a6e22e;">{</span>model | password &lt;- s<span style="color: #a6e22e;">}</span>, none<span style="color: #66d9ef;">)</span>
+    ...
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline16">
+<h4 id="orgheadline16">Now We Can Submit</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #66D9EF;">Submit</span> -&gt; <span style="color: #66d9ef;">(</span><span style="color: #a6e22e;">{</span>model | loading &lt;- <span style="color: #66D9EF;">True</span>
+                  <span style="color: #66D9EF;">,</span> lastError &lt;- <span style="color: #66D9EF;">Nothing</span><span style="color: #a6e22e;">}</span>
+          <span style="color: #66D9EF;">,</span>submitForm model.username model.password
+           |&gt; <span style="color: #66D9EF;">Effects</span>.map <span style="color: #66D9EF;">LoginResponse</span><span style="color: #66d9ef;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline17">
+<h4 id="orgheadline17">Handle The Response</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #66D9EF;">LoginResponse</span> <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">Ok</span> token<span style="color: #66d9ef;">)</span>  -&gt; <span style="color: #66d9ef;">(</span><span style="color: #a6e22e;">{</span>loading = <span style="color: #66D9EF;">False</span>
+                              <span style="color: #66D9EF;">,</span>lastError = <span style="color: #66D9EF;">Nothing</span>
+                              <span style="color: #66D9EF;">,</span>credentials = <span style="color: #66D9EF;">Just</span> token<span style="color: #a6e22e;">}</span>
+                             <span style="color: #66D9EF;">,</span>none<span style="color: #66d9ef;">)</span>
+<span style="color: #66D9EF;">LoginResponse</span> <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">Err</span> error<span style="color: #66d9ef;">)</span> -&gt; <span style="color: #66d9ef;">(</span><span style="color: #a6e22e;">{</span>loading = <span style="color: #66D9EF;">False</span>
+                              <span style="color: #66D9EF;">,</span>lastError = <span style="color: #66D9EF;">Just</span> error
+                              <span style="color: #66D9EF;">,</span>credentials = <span style="color: #66D9EF;">None</span><span style="color: #a6e22e;">}</span>
+                             <span style="color: #66D9EF;">,</span>none<span style="color: #66d9ef;">)</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline21">
+<h3 id="orgheadline21">Rendering</h3>
+<div class="outline-text-3" id="text-orgheadline21">
+</div></section>
+<section id="slide-orgheadline19">
+<h4 id="orgheadline19">Ideally</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">loginForm</span> : <span style="color: #66D9EF;">Model</span> -&gt; <span style="color: #66D9EF;">Html</span>
+<span style="color: #F92672; font-style: italic;">loginForm</span> model =
+  form <span style="color: #66d9ef;">[]</span>
+       <span style="color: #66d9ef;">[</span>input <span style="color: #a6e22e;">[</span><span style="color: #66D9EF;">type</span>' <span style="color: #E6DB74;">"text"</span>
+              <span style="color: #66D9EF;">,</span>class <span style="color: #E6DB74;">"form-control"</span>
+              <span style="color: #66D9EF;">,</span>autofocus <span style="color: #66D9EF;">True</span><span style="color: #a6e22e;">]</span>
+              <span style="color: #a6e22e;">[]</span>
+       <span style="color: #a6e22e;">[</span>input <span style="color: #e6db74;">[</span><span style="color: #66D9EF;">type</span>' <span style="color: #E6DB74;">"password"</span>
+              <span style="color: #66D9EF;">,</span>class <span style="color: #E6DB74;">"form-control"</span><span style="color: #e6db74;">]</span>
+              <span style="color: #e6db74;">[]</span>
+       <span style="color: #66D9EF;">,</span>button <span style="color: #e6db74;">[</span>class <span style="color: #E6DB74;">"btn btn-primary btn-block"</span>
+               <span style="color: #66D9EF;">,</span><span style="color: #66D9EF;">type</span>' <span style="color: #E6DB74;">"button"</span>
+               <span style="color: #66D9EF;">,</span>disabled <span style="color: #8f8f8f;">(</span>model.username == <span style="color: #E6DB74;">""</span> ||
+                          model.password == <span style="color: #E6DB74;">""</span><span style="color: #8f8f8f;">)</span><span style="color: #e6db74;">]</span>
+               <span style="color: #e6db74;">[</span>text <span style="color: #E6DB74;">"Log In"</span><span style="color: #e6db74;">]</span><span style="color: #a6e22e;">]</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline20">
+<h4 id="orgheadline20">In Reality</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">loginForm</span> : <span style="color: #66D9EF;">Address</span> <span style="color: #66D9EF;">Action</span> -&gt; <span style="color: #66D9EF;">Model</span> -&gt; <span style="color: #66D9EF;">Html</span>
+<span style="color: #F92672; font-style: italic;">loginForm</span> address model =
+  form <span style="color: #66d9ef;">[]</span>
+       <span style="color: #66d9ef;">[</span>input <span style="color: #a6e22e;">[</span><span style="color: #66D9EF;">type</span>' <span style="color: #E6DB74;">"text"</span>
+              <span style="color: #66D9EF;">,</span>class <span style="color: #E6DB74;">"form-control"</span>
+              <span style="color: #66D9EF;">,</span>onChange address <span style="color: #66D9EF;">Username</span>
+              <span style="color: #66D9EF;">,</span>autofocus <span style="color: #66D9EF;">True</span><span style="color: #a6e22e;">]</span>
+              <span style="color: #a6e22e;">[]</span>
+       <span style="color: #a6e22e;">[</span>input <span style="color: #e6db74;">[</span><span style="color: #66D9EF;">type</span>' <span style="color: #E6DB74;">"password"</span>
+              <span style="color: #66D9EF;">,</span>class <span style="color: #E6DB74;">"form-control"</span>
+              <span style="color: #66D9EF;">,</span>onChange address <span style="color: #66D9EF;">Password</span><span style="color: #e6db74;">]</span>
+              <span style="color: #e6db74;">[]</span>
+       <span style="color: #66D9EF;">,</span>button <span style="color: #e6db74;">[</span>class <span style="color: #E6DB74;">"btn btn-primary btn-block"</span>
+               <span style="color: #66D9EF;">,</span><span style="color: #66D9EF;">type</span>' <span style="color: #E6DB74;">"button"</span>
+               <span style="color: #66D9EF;">,</span>disabled <span style="color: #8f8f8f;">(</span>model.username == <span style="color: #E6DB74;">""</span> ||
+                          model.password == <span style="color: #E6DB74;">""</span><span style="color: #8f8f8f;">)</span>
+               <span style="color: #66D9EF;">,</span>onClick address <span style="color: #66D9EF;">Submit</span><span style="color: #e6db74;">]</span>
+               <span style="color: #e6db74;">[</span>text <span style="color: #E6DB74;">"Log In"</span><span style="color: #e6db74;">]</span><span style="color: #a6e22e;">]</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline22">
+<h3 id="orgheadline22">Done</h3>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline29">
+<h2 id="orgheadline29">Elm Architecture Redux</h2>
+<p>
+Four Easy Pieces
+</p>
+</section>
+<section id="slide-orgheadline24">
+<h3 id="orgheadline24">State of the World</h3>
+<p>
+<code>Model</code>
+</p>
+
+</section>
+<section id="slide-orgheadline25">
+<h3 id="orgheadline25">Show It</h3>
+<p>
+<code>Address Action -&gt; Model -&gt; Html</code>
+</p>
+
+</section>
+<section id="slide-orgheadline26">
+<h3 id="orgheadline26">Stuff Happens</h3>
+<p>
+<code>Action</code>
+</p>
+
+</section>
+<section id="slide-orgheadline27">
+<h3 id="orgheadline27">When Stuff Happens, What Does it Mean?</h3>
+<p>
+<code>Action -&gt; Model -&gt; (Model, Effects)</code>
+</p>
+</section>
+<section id="slide-orgheadline28">
+<h3 id="orgheadline28">Combination</h3>
+<ul>
+<li>Where MVC Goes Wrong</li>
+<li>Where Elm Gets It Right</li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline36">
+<h2 id="orgheadline36">Parsing</h2>
+<div class="outline-text-2" id="text-orgheadline36">
+</div></section>
+<section id="slide-orgheadline30">
+<h3 id="orgheadline30">Here's Some JSON</h3>
+<div class="org-src-container">
+
+<pre  class="src src-json"><span style="color: #66d9ef;">{</span>
+    spatialReference: <span style="color: #a6e22e;">{</span>
+        wkid: <span style="color: #AE81FF;">4326</span>,
+        latestWkid: <span style="color: #AE81FF;">4326</span>
+    <span style="color: #a6e22e;">}</span>,
+    candidates: <span style="color: #a6e22e;">[</span>
+        <span style="color: #e6db74;">{</span>
+            address: <span style="color: #E6DB74;">"Royal Festival Hall"</span>,
+            location: <span style="color: #8f8f8f;">{</span>
+                x: -<span style="color: #AE81FF;">0.11599726799954624</span>,
+                y: <span style="color: #AE81FF;">51.50532882800047</span>
+            <span style="color: #8f8f8f;">}</span>,
+            score: <span style="color: #AE81FF;">100</span>,
+            attributes: <span style="color: #8f8f8f;">{</span> <span style="color: #8f8f8f;">}</span>,
+            extent: <span style="color: #8f8f8f;">{</span>
+                xmin: -<span style="color: #AE81FF;">0.120998</span>,
+                ymin: <span style="color: #AE81FF;">51.500329</span>,
+                xmax: -<span style="color: #AE81FF;">0.110998</span>,
+                ymax: <span style="color: #AE81FF;">51.510329</span>
+            <span style="color: #8f8f8f;">}</span>
+        <span style="color: #e6db74;">}</span>
+    <span style="color: #a6e22e;">]</span>
+<span style="color: #66d9ef;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline34">
+<h3 id="orgheadline34">To Entypify The JSON</h3>
+<div class="outline-text-3" id="text-orgheadline34">
+</div></section>
+<section id="slide-orgheadline31">
+<h4 id="orgheadline31">Define a Place</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #66D9EF;">type</span> <span style="color: #66D9EF;">alias</span> <span style="color: #66D9EF;">Place</span> =
+  <span style="color: #66d9ef;">{</span>address: <span style="color: #66D9EF;">String</span>
+  <span style="color: #66D9EF;">,</span>latitude: <span style="color: #66D9EF;">Float</span>
+  <span style="color: #66D9EF;">,</span>longitude: <span style="color: #66D9EF;">Float</span><span style="color: #66d9ef;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline32">
+<h4 id="orgheadline32">Decode the List of Places</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">decodePlaces</span> : <span style="color: #66D9EF;">Decoder</span> <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">List</span> <span style="color: #66D9EF;">Candidate</span><span style="color: #66d9ef;">)</span>
+<span style="color: #F92672; font-style: italic;">decodePlaces</span> = <span style="color: #E6DB74;">"candidates"</span> := <span style="color: #66d9ef;">(</span>list decodePlace<span style="color: #66d9ef;">)</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline33">
+<h4 id="orgheadline33">Decode one Place</h4>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">decodePlace</span> : <span style="color: #66D9EF;">Decoder</span> <span style="color: #66D9EF;">Place</span>
+<span style="color: #F92672; font-style: italic;">decodePlace</span> =
+  <span style="color: #66D9EF;">Place</span> `map`   <span style="color: #66d9ef;">(</span><span style="color: #E6DB74;">"address"</span> := string<span style="color: #66d9ef;">)</span>
+        `apply` <span style="color: #66d9ef;">(</span>at <span style="color: #a6e22e;">[</span><span style="color: #E6DB74;">"location"</span>, <span style="color: #E6DB74;">"x"</span><span style="color: #a6e22e;">]</span> float<span style="color: #66d9ef;">)</span>
+        `apply` <span style="color: #66d9ef;">(</span>at <span style="color: #a6e22e;">[</span><span style="color: #E6DB74;">"location"</span>, <span style="color: #E6DB74;">"y"</span><span style="color: #a6e22e;">]</span> float<span style="color: #66d9ef;">)</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline35">
+<h3 id="orgheadline35">Done</h3>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline43">
+<h2 id="orgheadline43">Event-Tracking Analytics</h2>
+<div class="outline-text-2" id="text-orgheadline43">
+</div></section>
+<section id="slide-orgheadline37">
+<h3 id="orgheadline37">Define an Analytics Event</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #66D9EF;">type</span> <span style="color: #66D9EF;">alias</span> <span style="color: #66D9EF;">AnalyticsEvent</span> =
+  <span style="color: #66d9ef;">{</span>category : <span style="color: #66D9EF;">String</span>
+  <span style="color: #66D9EF;">,</span>action : <span style="color: #66D9EF;">String</span><span style="color: #66d9ef;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline38">
+<h3 id="orgheadline38">Generate Actions</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">toAnalyticsEvent</span> : <span style="color: #66D9EF;">Action</span> -&gt; <span style="color: #66D9EF;">Maybe</span> <span style="color: #66D9EF;">AnalyticsEvent</span>
+<span style="color: #F92672; font-style: italic;">toAnalyticsEvent</span> action =
+  <span style="color: #66D9EF;">case</span> action <span style="color: #66D9EF;">of</span>
+    <span style="color: #66D9EF;">BuyProduct</span> id           -&gt; <span style="color: #66D9EF;">Just</span> <span style="color: #66d9ef;">{</span>category = <span style="color: #E6DB74;">"Buy"</span>,   action = <span style="color: #E6DB74;">"Product"</span><span style="color: #66d9ef;">}</span>
+    <span style="color: #66D9EF;">ShareProduct</span> <span style="color: #66D9EF;">Twitter</span> id -&gt; <span style="color: #66D9EF;">Just</span> <span style="color: #66d9ef;">{</span>category = <span style="color: #E6DB74;">"Share"</span>, action = <span style="color: #E6DB74;">"Twitter"</span><span style="color: #66d9ef;">}</span>
+    ...
+    _                       -&gt; <span style="color: #66D9EF;">Nothing</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline39">
+<h3 id="orgheadline39">Generate an Effect</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">toAnalyticsEffect</span> : <span style="color: #66D9EF;">Action</span> -&gt; <span style="color: #66D9EF;">Effects</span> <span style="color: #66D9EF;">Action</span>
+<span style="color: #F92672; font-style: italic;">toAnalyticsEffect</span> action =
+  <span style="color: #66D9EF;">case</span> toAnalyticsEvent action <span style="color: #66D9EF;">of</span>
+    <span style="color: #66D9EF;">Nothing</span> -&gt; none
+    <span style="color: #66D9EF;">Just</span> event -&gt; sendEvent <span style="color: #66D9EF;">AnalyticsSent</span> event
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline40">
+<h3 id="orgheadline40">Augment Our Update Function</h3>
+<div class="org-src-container">
+
+<pre  class="src src-elm"><span style="color: #F92672; font-style: italic;">updateWithAnalytics</span> : <span style="color: #66D9EF;">Action</span> -&gt; <span style="color: #66D9EF;">Model</span> -&gt; <span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">Model</span>, <span style="color: #66D9EF;">Effects</span> <span style="color: #66D9EF;">Action</span><span style="color: #66d9ef;">)</span>
+<span style="color: #F92672; font-style: italic;">updateWithAnalytics</span> action model =
+  <span style="color: #66D9EF;">let</span> <span style="color: #66d9ef;">(</span>newModel,newFx<span style="color: #66d9ef;">)</span> = update action model
+  <span style="color: #66D9EF;">in</span> <span style="color: #66d9ef;">(</span>newModel, batch <span style="color: #a6e22e;">[</span>newFx, toAnalyticsEffect action<span style="color: #a6e22e;">]</span><span style="color: #66d9ef;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgheadline41">
+<h3 id="orgheadline41">Interop</h3>
+<div class="org-src-container">
+
+<pre  class="src src-js"><span style="color: #66D9EF;">var</span> <span style="color: #F92672;">sendEvent</span> = F2<span style="color: #66d9ef;">(</span><span style="color: #66D9EF;">function</span> <span style="color: #a6e22e;">(</span><span style="color: #F92672;">success</span>, <span style="color: #F92672;">event</span><span style="color: #a6e22e;">)</span> <span style="color: #a6e22e;">{</span>
+    <span style="color: #66D9EF;">return</span> Task.asyncFunction<span style="color: #e6db74;">(</span><span style="color: #66D9EF;">function</span><span style="color: #8f8f8f;">(</span><span style="color: #F92672;">callback</span><span style="color: #8f8f8f;">)</span> <span style="color: #8f8f8f;">{</span>
+        ga<span style="color: #f92672;">(</span><span style="color: #E6DB74;">'send'</span>, <span style="color: #E6DB74;">'event'</span>, event.category, event.action<span style="color: #f92672;">)</span>;
+
+        <span style="color: #66D9EF;">return</span> callback<span style="color: #f92672;">(</span>Task.succeed<span style="color: #8f8f8f;">(</span>success<span style="color: #8f8f8f;">)</span><span style="color: #f92672;">)</span>;
+    <span style="color: #8f8f8f;">}</span><span style="color: #e6db74;">)</span>;
+<span style="color: #a6e22e;">}</span><span style="color: #66d9ef;">)</span>;
+</pre>
+</div>
+
+</section>
+<section id="slide-orgheadline42">
+<h3 id="orgheadline42">Done</h3>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline44">
+<h2 id="orgheadline44">Demos</h2>
+<p>
+Time permitting&#x2026;
+</p>
+</section>
+</section>
+<section>
+<section id="slide-orgheadline45">
+<h2 id="orgheadline45">Links</h2>
+<p>
+Beeline
+</p>
+
+<p>
+<a href="http://krisajenkins.github.io/beeline-demo/">http://krisajenkins.github.io/beeline-demo/</a>
+</p>
+
+<p>
+Blog
+</p>
+
+<p>
+<a href="http://blog.jenkster.com/">http://blog.jenkster.com/</a>
+</p>
+
+<p>
+Sewing Browser
+</p>
+
+<p>
+<a href="http://www.getstitching.com/">http://www.getstitching.com/</a>
+</p>
+
+<p>
+Lunar Lander Game
+</p>
+
+<p>
+<a href="http://krisajenkins.github.io/lunarlander">http://krisajenkins.github.io/lunarlander</a>
+</p>
+
+<p>
+Learn!
+</p>
+
+<p>
+<a href="http://www.meetup.com/West-London-Hack-Night/">http://www.meetup.com/West-London-Hack-Night/</a>
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-orgheadline47">
+<h2 id="orgheadline47">Q &amp; A</h2>
+<div class="outline-text-2" id="text-orgheadline47">
+</div></section>
+<section id="slide-orgheadline46">
+<h3 id="orgheadline46">Is Elm Production-Ready?</h3>
+</section>
+</section>
+</div>
+</div>
+<script src="file:///Users/kris/Work/ThirdParty/reveal.js/lib/js/head.min.js"></script>
+<script src="file:///Users/kris/Work/ThirdParty/reveal.js/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: true,
+center: true,
+slideNumber: true,
+rollingLinks: false,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+});
+</script>
+</body>
+</html>

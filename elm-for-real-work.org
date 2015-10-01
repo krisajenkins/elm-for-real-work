@@ -1,0 +1,313 @@
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: reveal_history:t
+#+REVEAL_THEME: default
+#+REVEAL_EXTRA_CSS:
+#+COPYRIGHT: © Kris Jenkins, 2015
+#+AUTHOR: Kris Jenkins
+#+TITLE: Elm for Real Work
+#+EMAIL: Twitter: @krisajenkins
+#+DATE:
+* Why?
+** Complexity
+** Frontend Work is Really Complex
+- Mirror the backend
+- /plus/ Error-handling
+- /plus/ Users
+- /plus/ Marketing
+- /plus/ Everyone else
+- /plus/ Constantly In Flux
+** Pressing Need
+Make-or-break the company
+** We Have The Worst Tools
+- Expectations are evolving faster than JavaScript
+- Most of our solutions are workarounds
+* Elm
+** Elm is...
+- A variant of Haskell
+- Written in Haskell
+- Compiles to JavaScript
+- Easy to learn
+- Structurally simple
+*** Elm has...
+- Friendly Static Typing
+- Pure rendering
+- One-way data-flow
+- Immutable Data
+- Pure Functions
+- Control over /side-effects/
+** Let's look at
+- Whole app structure
+- Examples
+  - Forms
+  - Parsing
+  - Analytics
+- Demos
+* Elm Architecture
+Four Easy Pieces
+- State of the World
+- Show It
+- Stuff Happens
+- When Stuff Happens, What Does it Mean?
+* Login Form
+** Model
+#+BEGIN_SRC elm
+type Model =
+  {username : String
+  ,password : String
+  ,lastError : Maybe Error
+  ,credentials : Maybe AuthToken}
+#+END_SRC
+** Actions
+#+BEGIN_SRC elm
+  type Action
+    = Submit
+    | ChangeUsername String
+    | ChangePassword String
+    | LoginResponse (Result Error AuthToken)
+#+END_SRC
+
+** Action-Handling
+#+BEGIN_SRC elm
+update : Action -> Model -> Model
+update action model =
+  case action of
+    ChangeUsername s -> {model | username <- s}
+    ChangePassword s -> {model | password <- s}
+    ...
+#+END_SRC
+** Effects
+#+BEGIN_SRC elm
+  submitForm : Model -> Effects (Result Error AuthToken)
+  submitForm model =
+    encodeForm model
+    |> post decodeAuthToken "/auth/login"
+    |> asEffect
+
+  decodeAuthToken : String -> AuthToken
+  decodeAuthToken = ...
+#+END_SRC
+** More Action Handling
+*** I Lied
+#+BEGIN_SRC elm
+update : Action -> Model -> (Model, Effects Action)
+update action model =
+  case action of
+    ChangeUsername s -> ({model | username <- s}, none)
+    ChangePassword s -> ({model | password <- s}, none)
+    ...
+#+END_SRC
+*** Now We Can Submit
+#+BEGIN_SRC elm
+  Submit -> ({model | loading <- True
+                    , lastError <- Nothing}
+            ,submitForm model.username model.password
+             |> Effects.map LoginResponse)
+#+END_SRC
+*** Handle The Response
+#+BEGIN_SRC elm
+    LoginResponse (Ok token)  -> ({loading = False
+                                  ,lastError = Nothing
+                                  ,credentials = Just token}
+                                 ,none)
+    LoginResponse (Err error) -> ({loading = False
+                                  ,lastError = Just error
+                                  ,credentials = None}
+                                 ,none)
+#+END_SRC
+
+** Rendering
+*** Ideally
+#+BEGIN_SRC elm
+  loginForm : Model -> Html
+  loginForm model =
+    form []
+         [input [type' "text"
+                ,class "form-control"
+                ,autofocus True]
+                []
+         [input [type' "password"
+                ,class "form-control"]
+                []
+         ,button [class "btn btn-primary btn-block"
+                 ,type' "button"
+                 ,disabled (model.username == "" ||
+                            model.password == "")]
+                 [text "Log In"]]
+#+END_SRC
+*** In Reality
+#+BEGIN_SRC elm
+  loginForm : Address Action -> Model -> Html
+  loginForm address model =
+    form []
+         [input [type' "text"
+                ,class "form-control"
+                ,onChange address Username
+                ,autofocus True]
+                []
+         [input [type' "password"
+                ,class "form-control"
+                ,onChange address Password]
+                []
+         ,button [class "btn btn-primary btn-block"
+                 ,type' "button"
+                 ,disabled (model.username == "" ||
+                            model.password == "")
+                 ,onClick address Submit]
+                 [text "Log In"]]
+#+END_SRC
+** Done
+* Elm Architecture Redux
+Four Easy Pieces
+** State of the World
+
+=Model=
+
+** Show It
+
+=Address Action -> Model -> Html=
+
+** Stuff Happens
+
+=Action=
+
+** When Stuff Happens, What Does it Mean?
+
+=Action -> Model -> (Model, Effects)=
+** Combination
+- Where MVC Goes Wrong
+- Where Elm Gets It Right
+
+* Parsing
+** Here's Some JSON
+#+BEGIN_SRC json
+  {
+      spatialReference: {
+          wkid: 4326,
+          latestWkid: 4326
+      },
+      candidates: [
+          {
+              address: "Royal Festival Hall",
+              location: {
+                  x: -0.11599726799954624,
+                  y: 51.50532882800047
+              },
+              score: 100,
+              attributes: { },
+              extent: {
+                  xmin: -0.120998,
+                  ymin: 51.500329,
+                  xmax: -0.110998,
+                  ymax: 51.510329
+              }
+          }
+      ]
+  }
+#+END_SRC
+
+** To Entypify The JSON
+
+*** Define a Place
+
+#+BEGIN_SRC elm
+  type alias Place =
+    {address: String
+    ,latitude: Float
+    ,longitude: Float}
+#+END_SRC
+
+*** Decode the List of Places
+
+#+BEGIN_SRC elm
+decodePlaces : Decoder (List Candidate)
+decodePlaces = "candidates" := (list decodePlace)
+#+END_SRC
+
+*** Decode one Place
+
+#+BEGIN_SRC elm
+decodePlace : Decoder Place
+decodePlace =
+  Place `map`   ("address" := string)
+        `apply` (at ["location", "x"] float)
+        `apply` (at ["location", "y"] float)
+#+END_SRC
+
+** Done
+* Event-Tracking Analytics
+
+** Define an Analytics Event
+#+BEGIN_SRC elm
+type alias AnalyticsEvent =
+  {category : String
+  ,action : String}
+#+END_SRC
+
+** Generate Actions
+
+#+BEGIN_SRC elm
+toAnalyticsEvent : Action -> Maybe AnalyticsEvent
+toAnalyticsEvent action =
+  case action of
+    BuyProduct id           -> Just {category = "Buy",   action = "Product"}
+    ShareProduct Twitter id -> Just {category = "Share", action = "Twitter"}
+    ...
+    _                       -> Nothing
+#+END_SRC
+
+** Generate an Effect
+
+#+BEGIN_SRC elm
+  toAnalyticsEffect : Action -> Effects Action
+  toAnalyticsEffect action =
+    case toAnalyticsEvent action of
+      Nothing -> none
+      Just event -> sendEvent AnalyticsSent event
+#+END_SRC
+
+** Augment Our Update Function
+
+#+BEGIN_SRC elm
+  updateWithAnalytics : Action -> Model -> (Model, Effects Action)
+  updateWithAnalytics action model =
+    let (newModel,newFx) = update action model
+    in (newModel, batch [newFx, toAnalyticsEffect action])
+#+END_SRC
+** Interop
+#+BEGIN_SRC js
+  var sendEvent = F2(function (success, event) {
+      return Task.asyncFunction(function(callback) {
+          ga('send', 'event', event.category, event.action);
+
+          return callback(Task.succeed(success));
+      });
+  });
+#+END_SRC
+
+** Done
+* Demos
+Time permitting...
+* Links
+
+Beeline
+
+http://krisajenkins.github.io/beeline-demo/
+
+Blog
+
+http://blog.jenkster.com
+
+Sewing Browser
+
+http://www.getstitching.com/
+
+Lunar Lander Game
+
+http://krisajenkins.github.io/lunarlander
+
+Learn!
+
+http://www.meetup.com/West-London-Hack-Night/
+
+* Q & A
+** Is Elm Production-Ready?
